@@ -674,7 +674,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     }
                     /**
                      * 如果没有进入链表末尾
-                     * 判断当前节点的key是否与新节点的key一直，与上面if的逻辑一样，这里不在赘述。
+                     * 判断当前节点的key是否与新节点的key一致，与上面if的逻辑一样，这里不在赘述。
                      */
                     if (e.hash == hash &&
                             ((k = e.key) == key || (key != null && key.equals(k))))
@@ -699,6 +699,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if (++size > threshold) /** 这里我以前一直有一个误区，size表示的是map中所有节点的个数，而不是map中数组被占用的个数，这里很明确的表示出来了,如果size+1 大于阀值，则进行扩容 **/
             resize();
         afterNodeInsertion(evict);
+        System.out.println(table);
         return null;
     }
 
@@ -761,20 +762,41 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];/** 根据扩容后的容量，创建一个新的hashMap **/
         table = newTab;/** 将新的数组赋值给table属性，这里不是线程安全的 **/
         if (oldTab != null) {
+            /** 循环老数组 **/
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
+                /**
+                 * 如果老数组该下标下为null，则不管
+                 * 如果不为null，则放入新数组中,并将老数组释放,交给gc去回收
+                 */
                 if ((e = oldTab[j]) != null) {
                     oldTab[j] = null;
-                    if (e.next == null)
+                    if (e.next == null)/** 如果该链表只有一个值，则直接将其放入新数组 **/
                         newTab[e.hash & (newCap - 1)] = e;
-                    else if (e instanceof TreeNode)
+                    else if (e instanceof TreeNode)/** 如果该节点是一个红黑树，则将其拆开放入新数组 **/
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
-                    else { // preserve order
+                    else { /** 如果不是红黑树，并且链表不止一个值，则进入该步骤 **/
+                        /**
+                         * 首先有一个基础概念，HashMap扩容都是2倍扩容，即16->32>64
+                         * 那么同一个链表下的节点，在新的数组中的位置只会在两个可能的位置，
+                         * 一个是原下边，一个是原下标+原来数组的长度，
+                         * 至于为什么会这样？
+                         * 可以类比一组数除以16和同一组数除以32.
+                         *
+                         * 所以：loHead，记录原下标下的接线                  loTail:记录链表末尾节点
+                         *      hiHead，记录原下标+原数组长度的，下标下的节点  hiTail：记录链表末尾节点
+                         */
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
-                        Node<K,V> next;
+                        Node<K,V> next;/** 记录链表的下一个节点 **/
                         do {
-                            next = e.next;
+                            next = e.next;/** 遍历下一个节点 **/
+                            /**
+                             * e.hash & oldCao
+                             * 假设oldCap为16，那么二进制则是 0000 0000 0000 0000 0000 0000 0001 0000
+                             * 随便一个hash值               0000 1010 1010 1111 0100 0101 0101 1111
+                             * 如果第5位上不为1，则全部为0，表明，当前节点一定在数组的低位。如果第五位有值则表示一定 （% 32） 的余数一定比16大
+                             */
                             if ((e.hash & oldCap) == 0) {
                                 if (loTail == null)
                                     loHead = e;

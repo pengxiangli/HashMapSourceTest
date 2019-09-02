@@ -3,6 +3,7 @@ package com.benbenxiang.test;
 import com.benbenxiang.test.collect.HashMap;
 
 import java.util.Map;
+import java.util.Random;
 
 public class Test {
     public static void main(String[] args) {
@@ -16,5 +17,12 @@ public class Test {
         HashMap map = new HashMap();
         System.out.println(hashMap);
 
+
+        Random random = new Random();
+        int temp;
+        for (int i = 0; i < 100; i++){
+            temp = random.nextInt(9999999);
+            System.out.println(temp % 16 + "       " + temp % 32);
+        }
     }
 }
