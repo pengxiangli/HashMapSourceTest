@@ -369,6 +369,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Returns a power of two size for the given target capacity.
      */
     static final int tableSizeFor(int cap) {
+
         int n = cap - 1;
         n |= n >>> 1;
         n |= n >>> 2;
@@ -376,6 +377,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         n |= n >>> 8;
         n |= n >>> 16;
         return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+        /**
+         * cap=19
+         * int n = cap-1;//得到n=18，换算为二进制为0000 0000 0000 0000 0000 0000 0001 0010
+         * n |= n>>>1;//表示n无符号右移一位后，与n按位或计算，其中n>>>1= 1001，按位或结果为11011
+         * n|=n>>>2;//其中n>>>2=00110,按位或的结果为11111，下面几步类似，最终得到的结果是n=11111(二进制，也就是2^5-1，31)
+         * 这个计算方式是想法把二进制中低位的补1，最后的值一定是2的n次幂减1
+         * 最终计算得到的结果是32
+         */
     }
 
     /* ---------------- Fields -------------- */
