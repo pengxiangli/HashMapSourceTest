@@ -417,7 +417,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     // Additionally, if the table array has not been allocated, this
     // field holds the initial array capacity, or zero signifying
     // DEFAULT_INITIAL_CAPACITY.)
-    int threshold;
+    int     threshold;
 
     /**
      * The load factor for the hash table.
@@ -745,13 +745,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 newThr = oldThr << 1; // double threshold
         }
         else if (oldThr > 0) // initial capacity was placed in threshold
-            newCap = oldThr;/** TODO 老的扩容阀值大于0，目前不知道为何会走到这一步，先向下看 **/
+            newCap = oldThr;/**  老的扩容阀值大于0,并将其赋值为新的数组容量，只有通过有参构造函数猜可以走到这一步 **/
         else {               // zero initial threshold signifies using defaults
             /** 当HashMap，第一次默认初始化的时候，就会走到这里 **/
             newCap = DEFAULT_INITIAL_CAPACITY; //16
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);//12
         }
-        if (newThr == 0) {/** TODO 新的扩容阀值为0，目前不知道为何会走到这一步，先向下看 **/
+        if (newThr == 0) {/** 新的扩容阀值为0，只有通过有参构造函数猜可以走到这一步 **/
             float ft = (float)newCap * loadFactor;
             /** 判断新的大小是否小于最大数组限制，并且扩容阀值是否小于最大数组限制，否则将扩容阀值设为最大 **/
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
@@ -773,7 +773,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     oldTab[j] = null;
                     if (e.next == null)/** 如果该链表只有一个值，则直接将其放入新数组 **/
                         newTab[e.hash & (newCap - 1)] = e;
-                    else if (e instanceof TreeNode)/** 如果该节点是一个红黑树，则将其拆开放入新数组 **/
+                    else if (e instanceof TreeNode)/** 如果该节点是一个红黑树，则将其拆开放入新数组,和下面将链表拆成两个链表类似 **/
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     else { /** 如果不是红黑树，并且链表不止一个值，则进入该步骤 **/
                         /**
@@ -814,11 +814,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                         } while ((e = next) != null);
                         if (loTail != null) {
                             loTail.next = null;
-                            newTab[j] = loHead;
+                            newTab[j] = loHead;/** 将新的链表赋给低位的数组下标 **/
                         }
                         if (hiTail != null) {
                             hiTail.next = null;
-                            newTab[j + oldCap] = hiHead;
+                            newTab[j + oldCap] = hiHead;/** 将新的链表赋给高位的数组下标 **/
                         }
                     }
                 }
@@ -828,16 +828,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Replaces all linked nodes in bin at index for given hash unless
-     * table is too small, in which case resizes instead.
+     * 替换给定散列的索引处的bin中的所有链接节点，除非表太小，在这种情况下调整大小。
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
+        /**
+         * 这里判断是否满足转换为红黑树的最小数组大小，如果不满足，直接进行扩容操作
+         */
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
+        /** 去需要扩容的数组下标下的链表首个节点 **/
         else if ((e = tab[index = (n - 1) & hash]) != null) {
             TreeNode<K,V> hd = null, tl = null;
-            do {
+            do {/** 将链表节点变为TreeNode对象，并保持链表结构 **/
                 TreeNode<K,V> p = replacementTreeNode(e, null);
                 if (tl == null)
                     hd = p;
@@ -848,7 +851,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 tl = p;
             } while ((e = e.next) != null);
             if ((tab[index] = hd) != null)
-                hd.treeify(tab);
+                hd.treeify(tab);/** 改变为红黑树结构 **/
         }
     }
 
@@ -1892,7 +1895,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         /**
          * Ensures that the given root is the first node of its bin.
          */
-        static <K,V> void moveRootToFront(Node<K,V>[] tab, TreeNode<K,V> root) {
+        static <K,V> void moveRootToFront(Node<K,V>[] tab, TreeNode<K,V> root) {/** 保持根节点在首位,即在hash数组当前下标下第一个位置 **/
             int n;
             if (root != null && tab != null && (n = tab.length) > 0) {
                 int index = (n - 1) & root.hash;
@@ -1979,7 +1982,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             for (TreeNode<K,V> x = this, next; x != null; x = next) {
                 next = (TreeNode<K,V>)x.next;
                 x.left = x.right = null;
-                if (root == null) {
+                if (root == null) {/** 赋值根节点 **/
                     x.parent = null;
                     x.red = false;
                     root = x;
@@ -1988,7 +1991,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     K k = x.key;
                     int h = x.hash;
                     Class<?> kc = null;
-                    for (TreeNode<K,V> p = root;;) {
+                    for (TreeNode<K,V> p = root;;) {/** 遍历根节点 **/
                         int dir, ph;
                         K pk = p.key;
                         if ((ph = p.hash) > h)
@@ -2001,13 +2004,13 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                             dir = tieBreakOrder(k, pk);
 
                         TreeNode<K,V> xp = p;
-                        if ((p = (dir <= 0) ? p.left : p.right) == null) {
+                        if ((p = (dir <= 0) ? p.left : p.right) == null) {/** 找到指定位置并放入 **/
                             x.parent = xp;
                             if (dir <= 0)
                                 xp.left = x;
                             else
                                 xp.right = x;
-                            root = balanceInsertion(root, x);
+                            root = balanceInsertion(root, x);/** 平衡树结构，使其保持红黑树结构 **/
                             break;
                         }
                     }
