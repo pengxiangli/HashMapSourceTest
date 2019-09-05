@@ -1,5 +1,7 @@
 package com.benbenxiang.test.stream;
 
+import com.benbenxiang.test.stream.entrty.Apple;
+
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;

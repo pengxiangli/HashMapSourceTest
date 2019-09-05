@@ -1,4 +1,4 @@
-package com.benbenxiang.test.stream;
+package com.benbenxiang.test.stream.entrty;
 
 public class Apple implements Comparable{
 
