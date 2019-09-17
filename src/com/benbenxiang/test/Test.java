@@ -40,5 +40,6 @@ public class Test {
             temp = random.nextInt(9999999);
             System.out.println(temp % 16 + "       " + temp % 32);
         }
+
     }
 }
